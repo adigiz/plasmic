@@ -34,9 +34,14 @@ RUN yarn build
 
 # Now build wab (which depends on the above)
 WORKDIR /app/wab
+# Copy package files first
 COPY wab/package.json wab/yarn.lock ./
 COPY wab/patches/ ./patches/
+# Copy the register-library local package first (needed for yarn install)
+COPY wab/src/wab/shared/register-library ./src/wab/shared/register-library
+# Now install dependencies (register-library will be found)
 RUN yarn install --frozen-lockfile && yarn cache clean
+# Copy the rest of wab source files
 COPY wab/ .
 RUN mkdir -p src/wab/gen && make
 # Build the frontend for production (now that dependencies are built)
