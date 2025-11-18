@@ -1931,9 +1931,8 @@ export async function createApp(
 
   addMiddlewares(app, name, config, expressSessionMiddleware, opts);
 
-  if (!config.production) {
-    addStaticRoutes(app);
-  }
+  // Serve static files in both development and production (needed for self-hosting)
+  addStaticRoutes(app);
 
   addRoutes(app);
 

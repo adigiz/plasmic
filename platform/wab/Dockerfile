@@ -1,7 +1,7 @@
 # See https://hub.docker.com/_/node/
 FROM node:24-alpine AS builder
 
-RUN apk add --no-cache make~=4 bubblewrap~=0.11 python3 build-base bash
+RUN apk add --no-cache make~=4 bubblewrap~=0.11 python3 build-base bash git
 # Switch workdir back to wab
 WORKDIR /app/wab
 COPY wab/package.json wab/yarn.lock ./
@@ -9,6 +9,8 @@ COPY wab/patches/ ./patches/
 RUN yarn install --frozen-lockfile && yarn cache clean
 COPY wab/ .
 RUN mkdir -p src/wab/gen && make
+# Build the frontend for production
+RUN yarn build
 RUN rm -rf node_modules/
 
 FROM node:24-alpine AS runner
@@ -45,6 +47,9 @@ COPY wab/patches/ ./patches/
 RUN yarn install --production --frozen-lockfile && yarn cache clean
 COPY wab/ .
 COPY --from=builder /app/wab/ .
+# Copy the built frontend from builder
+COPY --from=builder /app/wab/build ./build
+COPY --from=builder /app/wab/public ./public
 
 USER node
 
