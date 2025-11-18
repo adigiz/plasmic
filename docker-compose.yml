@@ -17,6 +17,8 @@ services:
       interval: 5s
       timeout: 10s
       retries: 5
+    networks:
+      - plasmic-network
 
   # Plasmic WAB (Web App Builder)
   plasmic-wab:
@@ -38,9 +40,13 @@ services:
       # Required for production - these can be set in Dokploy or will use defaults
       - HOST=${HOST:-https://plasmic.kreatale.com}
       - SESSION_SECRET=${SESSION_SECRET}
-    # Optional - only set if you want a different password than SEKRET:
-    # - DB_PASSWORD=${DB_PASSWORD}
     restart: unless-stopped
+    networks:
+      - plasmic-network
 
 volumes:
   postgres_data:
+
+networks:
+  plasmic-network:
+    driver: bridge
