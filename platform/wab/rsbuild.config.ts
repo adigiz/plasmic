@@ -167,6 +167,14 @@ export default defineConfig({
     // html plugin so it works with StudioHtmlPlugin.
     htmlPlugin: false,
     rspack: {
+      resolve: {
+        alias: {
+          path: "path-browserify",
+        },
+      },
+      // Note: raw-loader is installed as a devDependency
+      // Rspack should automatically handle inline loader syntax like "raw-loader!file.txt"
+      // when the loader is installed and available in node_modules
       plugins: [
         // For most files, we are appending a commitHash to the file name
         // for caching and cache-busting. Ideally they'd be using a
