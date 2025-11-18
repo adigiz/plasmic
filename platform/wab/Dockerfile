@@ -2,14 +2,44 @@
 FROM node:24-alpine AS builder
 
 RUN apk add --no-cache make~=4 bubblewrap~=0.11 python3 build-base bash git
-# Switch workdir back to wab
+
+# Build context is ./platform, so we need to copy and build dependencies first
+# Copy sub directory (needed for wab build)
+WORKDIR /app/sub
+COPY sub/package.json sub/yarn.lock ./
+RUN yarn install --frozen-lockfile && yarn cache clean
+COPY sub/ .
+RUN yarn build
+
+# Copy and build react-web-bundle
+WORKDIR /app/react-web-bundle
+COPY react-web-bundle/package.json react-web-bundle/yarn.lock ./
+RUN yarn install --frozen-lockfile && yarn cache clean
+COPY react-web-bundle/ .
+RUN yarn build
+
+# Copy and build live-frame
+WORKDIR /app/live-frame
+COPY live-frame/package.json live-frame/yarn.lock ./
+RUN yarn install --frozen-lockfile && yarn cache clean
+COPY live-frame/ .
+RUN yarn build
+
+# Copy and build canvas-packages
+WORKDIR /app/canvas-packages
+COPY canvas-packages/package.json canvas-packages/yarn.lock ./
+RUN yarn install --frozen-lockfile && yarn cache clean
+COPY canvas-packages/ .
+RUN yarn build
+
+# Now build wab (which depends on the above)
 WORKDIR /app/wab
 COPY wab/package.json wab/yarn.lock ./
 COPY wab/patches/ ./patches/
 RUN yarn install --frozen-lockfile && yarn cache clean
 COPY wab/ .
 RUN mkdir -p src/wab/gen && make
-# Build the frontend for production
+# Build the frontend for production (now that dependencies are built)
 RUN yarn build
 RUN rm -rf node_modules/
 

@@ -21,7 +21,15 @@ import {
   mkDefinePluginOptsForEnv,
 } from "./tools/webpack/mkDefinePluginOptsForEnv";
 
-const commitHash = execSync("git rev-parse HEAD").toString().slice(0, 6);
+// Get commit hash from git, or use fallback if not available (e.g., in Docker build)
+let commitHash: string;
+try {
+  commitHash = execSync("git rev-parse HEAD").toString().slice(0, 6);
+} catch (error) {
+  // Fallback: use environment variable or default hash
+  commitHash = process.env.COMMITHASH || "000000";
+  console.warn("Could not get git commit hash, using fallback:", commitHash);
+}
 const buildEnv = process.env.NODE_ENV ?? "production";
 const isProd = buildEnv === "production";
 const port: number = process.env.PORT ? +process.env.PORT : 3003;
