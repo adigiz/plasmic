@@ -32,11 +32,12 @@ COPY wab/src/wab/shared/register-library ./src/wab/shared/register-library
 # Copy and build canvas-packages (depends on register-library)
 WORKDIR /app/canvas-packages
 COPY canvas-packages/package.json canvas-packages/yarn.lock ./
-# Copy makePkgTypes.js and other files needed for prepare script
+# Copy files needed for prepare script (makePkgTypes.js runs after yarn install)
 COPY canvas-packages/makePkgTypes.js ./
+COPY canvas-packages/typedPkgsList.json ./
 COPY canvas-packages/internal_pkgs ./internal_pkgs
 RUN yarn install --frozen-lockfile && yarn cache clean
-# Copy the rest of canvas-packages source files
+# Copy the rest of canvas-packages source files (including esbuild.js, hostlessList.json, etc.)
 COPY canvas-packages/ .
 RUN yarn build
 
