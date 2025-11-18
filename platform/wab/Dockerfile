@@ -25,7 +25,11 @@ RUN yarn install --frozen-lockfile && yarn cache clean
 COPY live-frame/ .
 RUN yarn build
 
-# Copy and build canvas-packages
+# Copy register-library first (needed by canvas-packages)
+WORKDIR /app/wab
+COPY wab/src/wab/shared/register-library ./src/wab/shared/register-library
+
+# Copy and build canvas-packages (depends on register-library)
 WORKDIR /app/canvas-packages
 COPY canvas-packages/package.json canvas-packages/yarn.lock ./
 RUN yarn install --frozen-lockfile && yarn cache clean
