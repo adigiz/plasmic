@@ -11,6 +11,8 @@ import {
   RspackPluginInstance,
 } from "@rspack/core";
 import { execSync } from "child_process";
+import { existsSync } from "fs";
+import { join } from "path";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import MonacoWebpackPlugin from "monaco-editor-webpack-plugin";
 import { homepage } from "./package.json";
@@ -37,7 +39,9 @@ const backendPort: number = process.env.BACKEND_PORT
   ? +process.env.BACKEND_PORT
   : 3004;
 const publicUrl: string =
-  process.env.PUBLIC_URL ?? (isProd ? homepage : `http://localhost:${port}`);
+  process.env.PUBLIC_URL ??
+  process.env.HOST ??
+  (isProd ? homepage : `http://localhost:${port}`);
 
 console.log(`Starting rsbuild...
 - commitHash: ${commitHash}
@@ -184,30 +188,55 @@ export default defineConfig({
         // the files are cacheable until the next deployment.
         new CopyRspackPlugin({
           patterns: [
-            {
-              from: "dev-build/static/styles/",
-              to: `static/styles/[path][name].${commitHash}[ext]`,
-            },
-            {
-              from: "../sub/public/static/",
-              to: `static/[path][name].${commitHash}[ext]`,
-            },
-            {
-              from: "../live-frame/build/",
-              to: `static/live-frame/build/[path][name].${commitHash}[ext]`,
-            },
-            {
-              from: "../react-web-bundle/build/",
-              to: `static/react-web-bundle/build/[path][name].${commitHash}[ext]`,
-            },
-            {
-              from: "../canvas-packages/build/",
-              to: `static/canvas-packages/build/[path][name].${commitHash}[ext]`,
-            },
-            {
-              from: "../loader-html-hydrate/build/",
-              to: "static/js/",
-            },
+            // Only copy dev-build styles if they exist (created by build-css)
+            ...(isProd || !existsSync(join(process.cwd(), "dev-build/static/styles"))
+              ? []
+              : [
+                  {
+                    from: "dev-build/static/styles/",
+                    to: `static/styles/[path][name].${commitHash}[ext]`,
+                  },
+                ]),
+            ...(existsSync(join(process.cwd(), "../sub/public/static"))
+              ? [
+                  {
+                    from: "../sub/public/static/",
+                    to: `static/[path][name].${commitHash}[ext]`,
+                  },
+                ]
+              : []),
+            ...(existsSync(join(process.cwd(), "../live-frame/build"))
+              ? [
+                  {
+                    from: "../live-frame/build/",
+                    to: `static/live-frame/build/[path][name].${commitHash}[ext]`,
+                  },
+                ]
+              : []),
+            ...(existsSync(join(process.cwd(), "../react-web-bundle/build"))
+              ? [
+                  {
+                    from: "../react-web-bundle/build/",
+                    to: `static/react-web-bundle/build/[path][name].${commitHash}[ext]`,
+                  },
+                ]
+              : []),
+            ...(existsSync(join(process.cwd(), "../canvas-packages/build"))
+              ? [
+                  {
+                    from: "../canvas-packages/build/",
+                    to: `static/canvas-packages/build/[path][name].${commitHash}[ext]`,
+                  },
+                ]
+              : []),
+            ...(existsSync(join(process.cwd(), "../loader-html-hydrate/build"))
+              ? [
+                  {
+                    from: "../loader-html-hydrate/build/",
+                    to: "static/js/",
+                  },
+                ]
+              : []),
           ],
         }),
         new AppendSourceMapWithHash({

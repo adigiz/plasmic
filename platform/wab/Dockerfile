@@ -53,6 +53,28 @@ RUN yarn install --frozen-lockfile && yarn cache clean
 # Copy the rest of wab source files
 COPY wab/ .
 RUN mkdir -p src/wab/gen && make
+# Create missing copilot/internal directory and fix-json stub if it doesn't exist
+RUN mkdir -p src/wab/shared/copilot/internal && \
+    if [ ! -f src/wab/shared/copilot/internal/fix-json.ts ]; then \
+    echo 'import jsonrepair from "jsonrepair";' > src/wab/shared/copilot/internal/fix-json.ts && \
+    echo 'export function fixJson(json: string): string {' >> src/wab/shared/copilot/internal/fix-json.ts && \
+    echo '  try {' >> src/wab/shared/copilot/internal/fix-json.ts && \
+    echo '    return jsonrepair(json);' >> src/wab/shared/copilot/internal/fix-json.ts && \
+    echo '  } catch {' >> src/wab/shared/copilot/internal/fix-json.ts && \
+    echo '    return json;' >> src/wab/shared/copilot/internal/fix-json.ts && \
+    echo '  }' >> src/wab/shared/copilot/internal/fix-json.ts && \
+    echo '}' >> src/wab/shared/copilot/internal/fix-json.ts; \
+    fi
+# Build CSS files needed for production build
+RUN yarn build-css || true
+# Build loader-html-hydrate before wab build (needed by CopyRspackPlugin)
+WORKDIR /app/loader-html-hydrate
+COPY loader-html-hydrate/package.json loader-html-hydrate/yarn.lock ./
+RUN yarn install --frozen-lockfile && yarn cache clean
+COPY loader-html-hydrate/ .
+RUN yarn build
+# Switch back to wab for frontend build
+WORKDIR /app/wab
 # Build the frontend for production (now that dependencies are built)
 # Set optional environment variables for production build (required by build process, but can be placeholder values)
 ENV AMPLITUDE_API_KEY="none"
