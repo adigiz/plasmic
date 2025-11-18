@@ -54,6 +54,16 @@ RUN yarn install --frozen-lockfile && yarn cache clean
 COPY wab/ .
 RUN mkdir -p src/wab/gen && make
 # Build the frontend for production (now that dependencies are built)
+# Set optional environment variables for production build (required by build process, but can be placeholder values)
+ENV AMPLITUDE_API_KEY="none"
+ENV INTERCOM_APP_ID="none"
+ENV POSTHOG_API_KEY="none"
+ENV POSTHOG_HOST="none"
+ENV POSTHOG_REVERSE_PROXY_HOST="none"
+ENV SENTRY_DSN="none"
+ENV SENTRY_ORG_ID="none"
+ENV SENTRY_PROJECT_ID="none"
+ENV STRIPE_PUBLISHABLE_KEY="none"
 RUN yarn build
 RUN rm -rf node_modules/
 
