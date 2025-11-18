@@ -35,11 +35,11 @@ services:
       - WAB_DBPASSWORD=${DB_PASSWORD:-SEKRET}
       # Production mode
       - NODE_ENV=production
-    # Required for production - MUST be set in Dokploy environment variables:
-    # - HOST=https://plasmic.kreatale.com
-    # - SESSION_SECRET=<generate-with-openssl-rand-hex-32>
+      # Required for production - these can be set in Dokploy or will use defaults
+      - HOST=${HOST:-https://plasmic.kreatale.com}
+      - SESSION_SECRET=${SESSION_SECRET}
     # Optional - only set if you want a different password than SEKRET:
-    # - DB_PASSWORD=<your-password>
+    # - DB_PASSWORD=${DB_PASSWORD}
     restart: unless-stopped
 
 volumes:
